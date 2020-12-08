@@ -48,12 +48,12 @@ app.get('/users/:username',(req,res) => {
     let url = 'https://api.github.com/users/'+req.params.username;
     
     sequelize
-        .query("SELECT login FROM "+tableName+" WHERE login = '"+req.params.username+"'")
+        .query("SELECT * FROM "+tableName+" WHERE login = '"+req.params.username+"'")
         .then(function(result){
             searchCondition = result[0][0]['login']
             if(req.params.username==searchCondition) {
                 console.log(req.params.username+' trouvé dans la base de donnée')
-                res.send(req.params.username+' trouvé dans la base de donnée')
+                res.json(result[0][0])
             }
         })
         .catch(function (err) {
@@ -63,7 +63,7 @@ app.get('/users/:username',(req,res) => {
                 .set('user-agent', 'Chrome')
                 .then(response => {
                     if(response.body.login == req.params.username) {
-                        res.send(response.body.login+' trouvé sur GitHub')
+                        // res.send(response.body.login+' trouvé sur GitHub')
                         console.log(response.body.login+' trouvé sur GitHub')
                         let User = sequelize.define(tableName,{
                             login: {
@@ -231,7 +231,11 @@ app.get('/users/:username',(req,res) => {
                         })
                         .then(function () {
                             console.log(req.params.username+' a été inséré dans la base')
-                            res.send(req.params.username+' a été inséré dans la base')
+                            sequelize
+                                .query("SELECT * FROM "+tableName+" WHERE login = '"+req.params.username+"'")
+                                .then(function(result){
+                                    res.json(result[0][0])
+                                })
                             return 
                         })
                         .catch(function(err) {
@@ -262,13 +266,6 @@ app.post('/:username',(req,res) => {
     })
     
 })
-
-// router.get('/:id', function(req,res) {
-//     db.select('nom').from('pokedex').where({numéro: req.params.id}).then(function(data) {
-//         res.send(data);
-//     })
-// })
-
 
 app.listen(PORT, () => {
     console.log("Server is running on port "+PORT)
